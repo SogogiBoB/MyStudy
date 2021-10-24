@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="member">
+	<insert id="add">
+		INSERT INTO member VALUES (#{mid}, #{name}, #{pw}, #{nickname})
+	</insert>
+	
+	<select id="checkId" resultType="Integer">
+		SELECT COUNT(*) FROM member WHERE mid = #{mid}
+	</select>
+	
+	<select id="item" resultType="Member">
+		SELECT * FROM member WHERE mid = #{mid}
+	</select>
+	
+	<sql id="search">
+		SELECT * FROM member 
+		<where>
+			<if test="search == 1">
+				mid LIKE CONCAT(CONCAT('%', #{keyword}), '%')
+			</if>
+			
+			<if test="search == 2">
+				name LIKE CONCAT(CONCAT('%', #{keyword}), '%')
+			</if>
+			
+			<if test="search == 3">
+				nickname LIKE CONCAT(CONCAT('%', #{keyword}), '%')
+			</if>
+		</where>
+	</sql>
+	
+	<select id="list" resultType="Member">
+		SELECT * FROM (SELECT ROWNUM rnum, sub.* FROM (<include refid="search"></include>) sub)
+		<![CDATA[
+		WHERE rnum >= ((#{page} - 1) * #{perPage} + 1) AND rnum <= (#{page} * #{perPage})
+		]]>
+	</select>
+	
+	<select id="total" resultType="Integer">
+		SELECT COUNT(*) FROM (<include refid="search"></include>)
+	</select>
+	
+	<delete id="delete">
+		DELETE FROM member WHERE mid=#{mid}
+	</delete>
+	
+	<update id="update">
+		UPDATE member SET name=#{name}, pw=#{pw}, nickname=#{nickname} WHERE mid=#{mid}
+	</update>
+</mapper>

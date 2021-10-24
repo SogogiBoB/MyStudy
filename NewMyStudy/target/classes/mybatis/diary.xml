@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="diary">
+	<sql id="search">
+		SELECT * FROM diary 
+		<where>
+			<if test="search==1">
+				title LIKE CONCAT(CONCAT('%', #{keyword}), '%')
+			</if>
+			
+			<if test="search==2">
+				regdate LIKE CONCAT(CONCAT('%', #{keyword}), '%')
+			</if>
+			AND mid=#{mid}
+		</where>
+		order by dnum desc
+	</sql>
+	
+	<select id="list" resultType="Diary">
+		SELECT * FROM (SELECT ROWNUM rnum, sub.* FROM(<include refid="search"></include>) sub)
+		<![CDATA[
+		WHERE rnum >= ((#{page} - 1) * #{perPage} + 1) AND rnum <= (#{page} * #{perPage})
+		]]>
+	</select>
+	
+	<select id="total" resultType="Integer">
+		SELECT COUNT(*) FROM (<include refid="search"></include>)
+	</select>
+	
+	<select id="item" resultType="Diary">
+		SELECT * FROM diary WHERE dnum=#{dnum}
+	</select>
+	
+	<insert id="add">
+		INSERT INTO diary VALUES (DIARY_SEQ.nextval, #{title}, #{content}, #{mid}, default, default)
+	</insert>
+	
+	<delete id="delete">
+		DELETE FROM diary WHERE dnum=#{dnum}
+	</delete>
+	
+	<update id="update">
+		UPDATE diary SET title=#{title}, content=#{content}, mid=#{mid}
+		WHERE dnum=#{dnum}
+	</update>
+</mapper>
